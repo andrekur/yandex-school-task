@@ -17,6 +17,9 @@ class TypeItems(str, Enum):
     product = 'OFFER'
     category = 'CATEGORY'
 
+    def __str__(self):
+        return "%s" % self._value_
+
 
 class ItemsBase(BaseModel):
     id: UUID4

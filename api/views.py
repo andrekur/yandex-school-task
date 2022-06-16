@@ -21,6 +21,9 @@ def get_db():
     status_code=status.HTTP_200_OK,
 )
 def imports_items(items: ItemIn, db: Session = Depends(get_db)):
+    """
+    Import new products/categories
+    """
     crud.post_imports(db, items)
     return []
 
@@ -30,7 +33,10 @@ def imports_items(items: ItemIn, db: Session = Depends(get_db)):
     status_code=status.HTTP_200_OK
 )
 def delete_item(id: str, db: Session = Depends(get_db)):
-    crud.del_item(ItemIdIn(id=id).id, db)
+    """
+    Delete products/categories by uuid. ondelete=cascade
+    """
+    crud.del_item(str(ItemIdIn(id=id).id), db)
 
 
 @app.get(
@@ -39,6 +45,8 @@ def delete_item(id: str, db: Session = Depends(get_db)):
     response_model=ItemsOut
 )
 def get_item(id: str, db: Session = Depends(get_db)):
-    result = crud.get_item(ItemIdIn(id=id).id, db)
-    print(result)
+    """
+    Get product/category by uuid
+    """
+    result = crud.get_item(str(ItemIdIn(id=id).id), db)
     return result

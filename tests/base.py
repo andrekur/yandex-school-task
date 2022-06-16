@@ -1,7 +1,7 @@
 from unittest import TestCase
 from os import remove
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 
 from db.models import Base
@@ -18,6 +18,13 @@ engine = create_engine(
 TestingSessionLocal = sessionmaker(autocommit=False,
                                    autoflush=False,
                                    bind=engine)
+
+
+@event.listens_for(engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
 
 
 def override_get_db():
@@ -47,6 +54,16 @@ class BaseAPITest(TestCase):
         return self.client.post(
             '/imports',
             json={**imports}
+        )
+
+    def get_items(self, items_id):
+        return self.client.get(
+            f'/nodes/{items_id}'
+        )
+
+    def del_items(self, items_id):
+        return self.client.delete(
+            f'/delete/{items_id}'
         )
 
 
