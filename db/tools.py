@@ -10,8 +10,7 @@ from sqlalchemy import and_
 def create_or_upd_product(item_dict, db):
     product = ProductModel(**item_dict)
 
-    product_in_db = db.query(ProductModel).filter(ProductModel.id == item_dict['id']).exists()
-    if db.query(product_in_db).scalar():
+    if check_product_in_db(item_dict['id'], db):
         db.query(ProductModel).filter(ProductModel.id == item_dict['id']).update(item_dict)
     else:
         db.add(product)
@@ -30,14 +29,9 @@ def create_or_upd_category(item_dict, db):
 
 
 def create_or_upd_relation_category(item_dict, parent, db):
-    relation_in_db = db.query(CategoriesRelationsModel).filter(
-            CategoriesRelationsModel.children_id == item_dict['id'],
-            and_(
-                CategoriesRelationsModel.parent_id == parent
-            )
-    ).exists()
+    check_relation_in_db(item_dict['id'], parent, db)
 
-    if db.query(relation_in_db).scalar():
+    if check_relation_in_db(item_dict['id'], parent, db):
         db.query(CategoriesRelationsModel).filter(
             CategoriesRelationsModel.children_id == item_dict['id'],
             and_(
@@ -80,3 +74,85 @@ def validation_parent_in_req(items, db):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Validation failed')
 
     return parent_ids_out_db
+
+
+def check_product_in_db(id_product, db):
+    product_in_db = db.query(ProductModel).filter(ProductModel.id == id_product).exists()
+    return db.query(product_in_db).scalar()
+
+
+def check_category_in_db(id_category, db):
+    category_in_db = db.query(CategoryModel).filter(CategoryModel.id == id_category).exists()
+    return db.query(category_in_db).scalar()
+
+
+def check_relation_in_db(children_id, parent_id, db):
+    relation_in_db = db.query(CategoriesRelationsModel).filter(
+            CategoriesRelationsModel.children_id == children_id,
+            and_(
+                CategoriesRelationsModel.parent_id == parent_id
+            )
+    ).exists()
+
+    return db.query(relation_in_db).scalar()
+
+
+def get_item_or_exception(item_id, db):
+    if check_category_in_db(item_id, db):
+        return db.query(CategoryModel).filter(CategoryModel.id == item_id).first()
+    elif check_product_in_db(item_id, db):
+        return db.query(ProductModel).filter(ProductModel.id == item_id).first()
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Item not found')
+
+
+def get_all_relations(item_id, db):
+    relations = set((item.children_id, item.parent_id) for item in db.query(CategoriesRelationsModel).all())
+    return get_relation_recursion(item_id, relations)
+
+
+def get_relation_recursion(item_id, relations):
+    arr = [item_id]
+
+    # get all children where item_id is parent
+    children_relations = [item[0] for item in relations if item[1] == item_id]
+
+    if len(children_relations) == 0:
+        return arr
+
+    for children in children_relations:
+        arr += get_relation_recursion(children, relations)
+
+    return arr
+
+
+def get_relation_item_recursion(item_id, relations, db):
+    products = db.query(ProductModel).filter(ProductModel.parentId == item_id)
+
+    category = schemas.ItemsOut.from_orm(get_item_or_exception(item_id, db))
+    category.type = schemas.TypeItems.category
+    category.children = []
+
+    for product in products:
+        product.type = schemas.TypeItems.product
+        category.children.append(product)
+    del products
+
+    # get all children where item_id is parent
+    children_relations = [item[0] for item in relations if item[1] == item_id]
+
+    if len(children_relations) == 0:
+        category.price = calc_average(category.children)
+        return category
+
+    for children in children_relations:
+        category.children.append(get_relation_item_recursion(children, relations, db))
+
+    category.price = calc_average(category.children)
+    return category
+
+
+def calc_average(items):
+    if len(items) == 0:
+        return None
+    return sum(0 if item.price is None else item.price for item in items) // len(items)
+

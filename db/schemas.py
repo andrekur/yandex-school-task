@@ -1,6 +1,6 @@
 from pydantic import BaseModel, UUID4, PositiveInt, constr, validator, conint
 from enum import Enum
-from typing import List
+from typing import List, Optional
 from datetime import datetime, timezone
 from fastapi import HTTPException, status
 
@@ -22,7 +22,7 @@ class ItemsBase(BaseModel):
     id: UUID4
     name: constr(min_length=1)
     parentId: UUID4 = None
-    price: conint(gt=0) = None
+    price: conint(ge=0) = None
     type: TypeItems
 
 
@@ -57,3 +57,22 @@ class ItemIn(BaseModel):
                     (element.price is not None and element.type == TypeItems.category):
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Validation Failed')
         return items
+
+
+class ItemIdIn(BaseModel):
+    id: UUID4
+
+    class Config:
+        orm_mode = True
+
+
+class ItemsOut(BaseModel):
+    id: UUID4
+    name: constr(min_length=1)
+    parentId: UUID4 = None
+    price: conint(ge=0) = None
+    type: TypeItems = None
+    children: Optional[List['ItemsOut']]
+
+    class Config:
+        orm_mode = True

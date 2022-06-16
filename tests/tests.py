@@ -24,7 +24,7 @@ class ProductTest(BaseAPITest):
         data = generate_imports(count_product=1)
         data['items'][0]['price'] = 0
         response = self.post_imports(data)
-        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         data['items'][0]['price'] = None
         response = self.post_imports(data)
@@ -67,7 +67,7 @@ class CategoryTest(BaseAPITest):
         data = generate_imports(count_category=1)
         data['items'][0]['price'] = 0
         response = self.post_imports(data)
-        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         data = generate_imports(count_category=1)
         data['items'][0]['price'] = 12332

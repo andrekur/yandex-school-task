@@ -3,10 +3,19 @@ import copy
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from .models import CategoryModel, ProductModel
+from .models import CategoryModel, CategoriesRelationsModel
 
 from . import schemas
-from .tools import create_or_upd_product, create_or_upd_category, create_or_upd_relation_category, validation_change_type, validation_parent_in_req
+from .tools import (
+    create_or_upd_product,
+    create_or_upd_category,
+    create_or_upd_relation_category,
+    validation_change_type,
+    validation_parent_in_req,
+    get_item_or_exception,
+    get_all_relations,
+    get_relation_item_recursion
+)
 
 
 def post_imports(db: Session, items):
@@ -86,3 +95,17 @@ def insert_category(item, date, db):
     create_or_upd_relation_category(item_dict, parent, db)
     db.commit()
 
+
+def del_item(item_id, db):
+    get_item_or_exception(item_id, db)
+    # search all relation in graph
+    all_children = get_all_relations(item_id, db)
+    db.query(CategoryModel).filter(CategoryModel.id.in_(all_children)).delete()
+
+    db.commit()
+
+
+def get_item(item_id, db):
+    get_item_or_exception(item_id, db)
+    relations = set((item.children_id, item.parent_id) for item in db.query(CategoriesRelationsModel).all())
+    return get_relation_item_recursion(item_id, relations, db)

@@ -18,7 +18,7 @@ class ProductModel(Base):
     name = Column(String, nullable=False)
     price = Column(BigInteger, nullable=False)
     date = Column(DateTime, nullable=False)
-    parentId = Column(Text(length=36), ForeignKey('category.id'), nullable=True, index=True)
+    parentId = Column(Text(length=36), ForeignKey('category.id', ondelete='CASCADE'), nullable=True, index=True)
 
 
 class CategoriesRelationsModel(Base):
@@ -34,7 +34,7 @@ class CategoriesRelationsModel(Base):
         )
     )
     id = Column(Integer, primary_key=True, index=True)
-    parent_id = Column(Text(length=36), ForeignKey('category.id'), nullable=True, index=True)
-    children_id = Column(Text(length=36), ForeignKey('category.id'), nullable=False, index=True)
+    parent_id = Column(Text(length=36), ForeignKey('category.id', ondelete='CASCADE'), nullable=True, index=True)
+    children_id = Column(Text(length=36), ForeignKey('category.id', ondelete='CASCADE'), nullable=False, index=True)
 
 
