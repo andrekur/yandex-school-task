@@ -90,7 +90,14 @@ def del_item(item_id, db):
 
 
 def get_all_product_by_interval(left, right, db):
-    return db.query(ProductModel).filter(ProductModel.date >= left, and_(ProductModel.date < right)).all()
+    products = db.query(ProductModel).filter(ProductModel.date >= left, and_(ProductModel.date < right)).all()
+
+    result = []
+    for product in products:
+        product.type = schemas.TypeItems.product
+        result.append(schemas.ProductBase.from_orm(product))
+
+    return result
 
 
 def get_item_tree(item_id, db):

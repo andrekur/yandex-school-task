@@ -95,7 +95,7 @@ class ItemsOut(BaseModel):
         orm_mode = True
 
 
-class _ProductBase(_ItemsBase):
+class ProductBase(_ItemsBase):
     date: datetime
 
     _normalize_datetime = validator(
@@ -110,7 +110,7 @@ class _ProductBase(_ItemsBase):
 
 
 class ProductOut(BaseModel):
-    items: List['_ProductBase']
+    items: List['ProductBase']
 
     class Config:
         orm_mode = True

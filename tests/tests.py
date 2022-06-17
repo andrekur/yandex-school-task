@@ -229,8 +229,6 @@ class CategoryTest(BaseAPITest):
         item2['children'] = products
         item1['children'] = [item2, ]
         item0['children'] = [item1]
-        # TODO DELETE children fields from product
-        # but is incorrect. Product dont have children fields. time is running out(
         products[0]['children'] = None
         products[1]['children'] = None
 
@@ -242,11 +240,21 @@ class CategoryTest(BaseAPITest):
 class TestSales(BaseAPITest):
     def test_sales(self):
         products = generate_imports(count_product=2)
-
+        # create product
         response = self.post_imports(products)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        test_date = (dt.now() - timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+        response = self.get_items(products['items'][0]['id'])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # check sales
+        test_date = (dt.now() + timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
         response = self.get_sales(test_date)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        print(response.json())
+        self.assertEqual(len(response.json()['items']), 2)
+        # check left interval
+        products = generate_imports(count_product=2)
+        products['updateDate'] = (dt.now() - timedelta(hours=24)).strftime('%Y-%m-%dT%H:%M:%SZ')
+        response = self.post_imports(products)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.get_sales(test_date)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()['items']), 2)
