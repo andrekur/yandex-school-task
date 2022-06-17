@@ -67,4 +67,8 @@ class BaseAPITest(TestCase):
             f'/delete/{items_id}'
         )
 
-
+    def get_sales(self, date):
+        return self.client.get(
+            '/sales',
+            params={'date': date}
+        )

@@ -1,5 +1,6 @@
 import uuid
-
+from datetime import datetime as dt
+from datetime import timedelta
 from fastapi import status
 
 from db.schemas import TypeItems
@@ -237,19 +238,15 @@ class CategoryTest(BaseAPITest):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json(), item0)
 
-        # # del id1
-        # response = self.del_items(id1)
-        # self.assertEqual(response.status_code, status.HTTP_200_OK)
-        #
-        # # check del relations
-        # response = self.get_items(id1)
-        # self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        # response = self.get_items(id2)
-        # self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        # response = self.get_items(id0)
-        #
-        # # check that root element not del
-        # item0['children'] = []
-        #
-        # self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # self.assertEqual(response.json(), item0)
+
+class TestSales(BaseAPITest):
+    def test_sales(self):
+        products = generate_imports(count_product=2)
+
+        response = self.post_imports(products)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        test_date = (dt.now() - timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+        response = self.get_sales(test_date)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        print(response.json())

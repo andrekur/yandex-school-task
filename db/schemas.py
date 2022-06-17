@@ -80,16 +80,6 @@ class ItemIn(BaseModel):
         return items
 
 
-class ItemIdIn(BaseModel):
-    """
-    Serializer item id
-    """
-    id: UUID4
-
-    class Config:
-        orm_mode = True
-
-
 class ItemsOut(BaseModel):
     """
     Serializer items out
@@ -100,6 +90,27 @@ class ItemsOut(BaseModel):
     price: conint(ge=0) = None
     type: TypeItems = None
     children: Optional[List['ItemsOut']]
+
+    class Config:
+        orm_mode = True
+
+
+class _ProductBase(_ItemsBase):
+    date: datetime
+
+    _normalize_datetime = validator(
+        "date",
+        allow_reuse=True)(transform_to_utc_datetime)
+
+    class Config:
+        json_encoders = {
+            datetime: convert_datetime_to_iso_8601
+        }
+        orm_mode = True
+
+
+class ProductOut(BaseModel):
+    items: List['_ProductBase']
 
     class Config:
         orm_mode = True

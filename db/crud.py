@@ -1,5 +1,6 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import and_
 
 from . import schemas
 from .models import CategoryModel, CategoriesRelationsModel, ProductModel
@@ -86,6 +87,10 @@ def del_item(item_id, db):
     db.query(CategoryModel).filter(CategoryModel.id.in_(all_children)).delete()
 
     db.commit()
+
+
+def get_all_product_by_interval(left, right, db):
+    return db.query(ProductModel).filter(ProductModel.date >= left, and_(ProductModel.date < right)).all()
 
 
 def get_item_tree(item_id, db):
