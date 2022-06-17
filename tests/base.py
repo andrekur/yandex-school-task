@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 
 from db.models import Base
 from api.api_start import app
-from api.views import get_db
+from api.controllers import get_db
 
 TEST_DB_PATH = './tests/test.db'
 
@@ -20,6 +20,7 @@ TestingSessionLocal = sessionmaker(autocommit=False,
                                    bind=engine)
 
 
+# without this foreign key not work in sqlite
 @event.listens_for(engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
     cursor = dbapi_connection.cursor()

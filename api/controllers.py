@@ -1,4 +1,3 @@
-from typing import List
 from fastapi import Depends, status
 
 from db.schemas import ItemIn, ItemIdIn, ItemsOut
@@ -25,7 +24,6 @@ def imports_items(items: ItemIn, db: Session = Depends(get_db)):
     Import new products/categories
     """
     crud.post_imports(db, items)
-    return []
 
 
 @app.delete(
@@ -48,5 +46,4 @@ def get_item(id: str, db: Session = Depends(get_db)):
     """
     Get product/category by uuid
     """
-    result = crud.get_item(str(ItemIdIn(id=id).id), db)
-    return result
+    return crud.get_item_tree(str(ItemIdIn(id=id).id), db)

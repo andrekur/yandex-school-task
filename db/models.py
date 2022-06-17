@@ -3,6 +3,9 @@ from .connector import Base
 
 
 class CategoryModel(Base):
+    """
+    Category model in db
+    """
     __tablename__ = 'category'
 
     id = Column(Text(length=36), primary_key=True, index=True)
@@ -12,6 +15,9 @@ class CategoryModel(Base):
 
 
 class ProductModel(Base):
+    """
+    Product model in db
+    """
     __tablename__ = 'product'
 
     id = Column(Text(length=36), primary_key=True, index=True)
@@ -22,6 +28,9 @@ class ProductModel(Base):
 
 
 class CategoriesRelationsModel(Base):
+    """
+    Category-relations model in db
+    """
     __tablename__ = 'category_relations'
     __table_args__ = (
         UniqueConstraint(

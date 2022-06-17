@@ -4,13 +4,13 @@ from sqlalchemy.orm import Session
 from . import schemas
 from .models import CategoryModel, CategoriesRelationsModel, ProductModel
 from .tools import (
-    create_category,
-    create_product,
+    create_or_upd_category_and_relations,
+    create_or_upd_product,
     validation_change_type,
     validation_parent_in_req,
     get_item_or_404,
-    get_all_relations,
-    get_relation_item_recursion,
+    get_all_category_relations,
+    build_items_tree,
 )
 
 
@@ -33,22 +33,22 @@ def post_imports(db: Session, request_data):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Validation Failed')
         # item is end point
         if item.parentId is None:
-            create_category(item, upd_date, db)
+            create_or_upd_category_and_relations(item, upd_date, db)
             del items_dict[item.id]
         else:
-            _add_category(item.parentId, items_dict, upd_date, db)
-            create_category(item, upd_date, db)
+            _recursion_add_category_children(item.parentId, items_dict, upd_date, db)
+            create_or_upd_category_and_relations(item, upd_date, db)
             del items_dict[item.id]
     # add remaining items
     for key, val in items_dict.items():
         if val.type == schemas.TypeItems.category:
-            create_category(val, upd_date, db)
+            create_or_upd_category_and_relations(val, upd_date, db)
         else:
-            create_product(val, upd_date, db)
+            create_or_upd_product(val, upd_date, db)
     db.commit()
 
 
-def _add_category(id, items_dict, date, db):
+def _recursion_add_category_children(id, items_dict, date, db):
     """
     Recursion add category to insert in db
     """
@@ -57,15 +57,22 @@ def _add_category(id, items_dict, date, db):
     if item is None:
         return
     if item.parentId is None:
-        create_category(item, date, db)
+        create_or_upd_category_and_relations(item, date, db)
         del items_dict[item.id]
     else:
-        _add_category(item.parentId, items_dict, date, db)
-        create_category(item, date, db)
+        _recursion_add_category_children(item.parentId, items_dict, date, db)
+        create_or_upd_category_and_relations(item, date, db)
         del items_dict[item.id]
 
 
 def del_item(item_id, db):
+    """
+    Del item and all relations.
+    If type is product -> del only product
+    If type is category -> del all children category
+    and all products for this category
+    if item not in db -> return 404 Item Not Found
+    """
     item = get_item_or_404(item_id, db)
 
     # del product
@@ -75,13 +82,13 @@ def del_item(item_id, db):
         return
     # item is a category
     # search all relation in graph
-    all_children = get_all_relations(item_id, db)
+    all_children = get_all_category_relations(item_id, db)
     db.query(CategoryModel).filter(CategoryModel.id.in_(all_children)).delete()
 
     db.commit()
 
 
-def get_item(item_id, db):
+def get_item_tree(item_id, db):
     item = get_item_or_404(item_id, db)
     # check that item is OFFER
     if hasattr(item, 'parentId'):
@@ -89,4 +96,4 @@ def get_item(item_id, db):
         return item
 
     relations = set((item.children_id, item.parent_id) for item in db.query(CategoriesRelationsModel).all())
-    return get_relation_item_recursion(item_id, relations, db)
+    return build_items_tree(item_id, relations, db)

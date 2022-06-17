@@ -6,14 +6,23 @@ from fastapi import HTTPException, status
 
 
 def convert_datetime_to_iso_8601(dt: datetime) -> str:
+    """
+    Convert date to iso 8601
+    """
     return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
 def transform_to_utc_datetime(dt: datetime) -> datetime:
+    """
+    Convert date to utc
+    """
     return dt.astimezone(tz=timezone.utc)
 
 
 class TypeItems(str, Enum):
+    """
+    Descriptions type items
+    """
     product = 'OFFER'
     category = 'CATEGORY'
 
@@ -21,7 +30,10 @@ class TypeItems(str, Enum):
         return "%s" % self._value_
 
 
-class ItemsBase(BaseModel):
+class _ItemsBase(BaseModel):
+    """
+    Base serializer class for input items
+    """
     id: UUID4
     name: constr(min_length=1)
     parentId: UUID4 = None
@@ -30,7 +42,10 @@ class ItemsBase(BaseModel):
 
 
 class ItemIn(BaseModel):
-    items: List[ItemsBase]
+    """
+    Serializer items out
+    """
+    items: List[_ItemsBase]
     updateDate: datetime
 
     _normalize_datetime = validator(
@@ -63,6 +78,9 @@ class ItemIn(BaseModel):
 
 
 class ItemIdIn(BaseModel):
+    """
+    Serializer item id
+    """
     id: UUID4
 
     class Config:
@@ -70,6 +88,9 @@ class ItemIdIn(BaseModel):
 
 
 class ItemsOut(BaseModel):
+    """
+    Serializer items out
+    """
     id: UUID4
     name: constr(min_length=1)
     parentId: UUID4 = None
