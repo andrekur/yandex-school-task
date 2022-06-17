@@ -1,0 +1,42 @@
+version: '3.6'
+
+services:
+  db:
+    restart: always
+    container_name: postgres_app
+    image: postgres:${DB_TAG}
+    ports:
+      - ${DB_PORT_IN}:${DB_PORT_OUT}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=${DB_NAME_DB}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+  nginx:
+    image: nginx:${NGINX_TAG}
+    container_name: nginx_app
+    ports:
+      - ${NGINX_PORT_IN}:${NGINX_PORT_OUT}
+    volumes:
+      - ./nginx/:/etc/nginx/templates/
+    environment:
+      - SERVER_PORT=${API_SERVER_PORT}
+    depends_on:
+      - web
+  web:
+    restart: always
+    container_name: web_app
+    build:
+      context: ../
+      dockerfile: _CI/Dockerfile
+    volumes:
+      - logs_data:/app/logs
+    depends_on:
+      - db
+      - rabbitmq
+    command: ./entrypoint.sh
+
+volumes:
+  postgres_data:
+  logs_data:

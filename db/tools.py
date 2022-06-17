@@ -134,13 +134,20 @@ def build_items_tree(item_id, relations, db):
     children_relations = [item[0] for item in relations if item[1] == item_id]
 
     if len(children_relations) == 0:
+        # check for one item
         category.price = _calc_average(category.children)
         return category
 
     for children in children_relations:
         category.children.append(build_items_tree(children, relations, db))
 
+    # add parentId
+    for child in category.children:
+        if hasattr(child, 'parentId'):
+            child.parentId = category.id
+
     category.price = _calc_average(category.children)
+
     return category
 
 
@@ -150,6 +157,16 @@ def _calc_average(items):
     """
     if len(items) == 0:
         return None
+
+    children_only_category = True
+    for item in items:
+        if item.price is not None:
+            children_only_category = False
+            break
+
+    if children_only_category:
+        return None
+
     return sum(0 if item.price is None else item.price for item in items) // len(items)
 
 

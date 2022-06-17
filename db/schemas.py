@@ -57,6 +57,9 @@ class ItemIn(BaseModel):
             datetime: convert_datetime_to_iso_8601
         }
         orm_mode = True
+        error_msg_templates = {
+            'Validation Failed',
+        }
 
     @validator('items')
     def check_unique_ids(cls, items):

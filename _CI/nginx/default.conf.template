@@ -1,0 +1,11 @@
+server {
+    listen 80;
+
+    server_name server_v1;
+
+    location / {
+        proxy_pass http://web:${SERVER_PORT};
+    }
+    
+    server_tokens off;
+}
