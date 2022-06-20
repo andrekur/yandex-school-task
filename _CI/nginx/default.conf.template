@@ -4,7 +4,7 @@ server {
     server_name server_v1;
 
     location / {
-        proxy_pass http://web:${SERVER_PORT};
+        proxy_pass http://web:${API_SERVER_PORT};
     }
     
     server_tokens off;
