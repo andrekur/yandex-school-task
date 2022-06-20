@@ -13,17 +13,6 @@ services:
       - POSTGRES_DB=${DB_NAME_DB}
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
-#  nginx:
-#    image: nginx:${NGINX_TAG}
-#    container_name: nginx_app
-#    ports:
-#      - ${NGINX_PORT_IN}:${NGINX_PORT_OUT}
-#    volumes:
-#      - ./nginx/:/etc/nginx/templates/
-#    environment:
-#      - SERVER_PORT=${API_SERVER_PORT}
-#    depends_on:
-#      - web
   web:
     restart: always
     container_name: web_app
@@ -31,7 +20,7 @@ services:
       context: ../
       dockerfile: _CI/Dockerfile
     ports:
-      - 80:3000
+      - ${WEB_PORT_IN}:${WEB_PORT_OUT}
     volumes:
       - logs_data:/app/logs
     depends_on:

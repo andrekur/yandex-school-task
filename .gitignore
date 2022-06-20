@@ -41,8 +41,8 @@ pip-log.txt
 pip-delete-this-directory.txt
 
 # migrations
-**/versions/**
-!**/versions
+migration/versions/*.py
+!**/versionsgi
 !**/versions/__init__.py
 
 # Unit test / coverage reports
