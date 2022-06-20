@@ -70,7 +70,11 @@ class ProductTest(BaseAPITest):
 
     def test_create_product_with_parent(self):
         data = generate_imports(count_category=1, count_product=1)
-        parent_uuid = [item['id'] for item in data['items'] if item['type'] == TypeItems.category].pop()
+        parent_uuid = [
+            item['id']
+            for item in data['items']
+            if item['type'] == TypeItems.category
+        ].pop()
 
         for item in data['items']:
             if item['type'] == TypeItems.product:
@@ -81,7 +85,9 @@ class ProductTest(BaseAPITest):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # check get product
-        product = [item for item in data['items'] if item['id'] != parent_uuid].pop()
+        product = [
+            item for item in data['items'] if item['id'] != parent_uuid
+        ].pop()
         product['children'] = None
 
         response = self.get_items(product['id'])
@@ -89,7 +95,9 @@ class ProductTest(BaseAPITest):
         self.assertEqual(response.json(), product)
 
         # check get category
-        category = [item for item in data['items'] if item['id'] == parent_uuid].pop()
+        category = [
+            item for item in data['items'] if item['id'] == parent_uuid
+        ].pop()
         category['children'] = [product, ]
         category['price'] = product['price']
 
@@ -99,7 +107,11 @@ class ProductTest(BaseAPITest):
 
     def test_del_category_with_product(self):
         data = generate_imports(count_category=1, count_product=1)
-        parent_uuid = [item['id'] for item in data['items'] if item['type'] == TypeItems.category].pop()
+        parent_uuid = [
+            item['id']
+            for item in data['items']
+            if item['type'] == TypeItems.category
+        ].pop()
 
         for item in data['items']:
             if item['type'] == TypeItems.product:
@@ -221,9 +233,13 @@ class CategoryTest(BaseAPITest):
 
         item0 = data['items'][1]
         item1 = data['items'][2]
-        item1['price'] = sum(product['price'] for product in products) // (len(products))
+        item1['price'] = sum(
+            product['price'] for product in products
+        ) // (len(products))
         item2 = data['items'][3]
-        item2['price'] = sum(product['price'] for product in products) // len(products)
+        item2['price'] = sum(
+            product['price'] for product in products
+        ) // len(products)
         item0['price'] = item1['price']
 
         item2['children'] = products
@@ -246,13 +262,17 @@ class TestSales(BaseAPITest):
         response = self.get_items(products['items'][0]['id'])
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # check sales
-        test_date = (dt.now() + timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+        test_date = (
+                dt.now() + timedelta(hours=1)
+        ).strftime('%Y-%m-%dT%H:%M:%SZ')
         response = self.get_sales(test_date)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.json()['items']), 2)
         # check left interval
         products = generate_imports(count_product=2)
-        products['updateDate'] = (dt.now() - timedelta(hours=24)).strftime('%Y-%m-%dT%H:%M:%SZ')
+        products['updateDate'] = (
+                dt.now() - timedelta(hours=24)
+        ).strftime('%Y-%m-%dT%H:%M:%SZ')
         response = self.post_imports(products)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = self.get_sales(test_date)

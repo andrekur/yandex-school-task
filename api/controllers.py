@@ -63,7 +63,15 @@ def get_item(id: UUID, db: Session = Depends(get_db)):
     status_code=status.HTTP_200_OK,
     response_model=ProductOut
 )
-def get_sales(date: Union[datetime, None] = Query(default=None), db: Session = Depends(get_db)):
+def get_sales(date: Union[datetime, None] = Query(default=None),
+              db: Session = Depends(get_db)):
     if date is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Bad request')
-    return {'items': get_all_product_by_interval(date - timedelta(hours=24), date, db)}
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Bad request'
+        )
+    return {
+        'items': get_all_product_by_interval(
+            date - timedelta(hours=24), date, db
+        )
+    }

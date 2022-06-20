@@ -1,4 +1,4 @@
-from pydantic import BaseModel, UUID4, PositiveInt, constr, validator, conint
+from pydantic import BaseModel, UUID4, constr, validator, conint
 from enum import Enum
 from typing import List, Optional
 from datetime import datetime, timezone
@@ -66,7 +66,10 @@ class ItemIn(BaseModel):
         ids = [str(element.id) for element in items]
 
         if len(ids) != len(set(ids)):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Validation Failed')
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Validation Failed'
+            )
         del ids
 
         return items
@@ -74,9 +77,18 @@ class ItemIn(BaseModel):
     @validator('items')
     def check_price(cls, items):
         for element in items:
-            if (element.price is None and element.type == TypeItems.product) or\
-                    (element.price is not None and element.type == TypeItems.category):
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Validation Failed')
+            if (
+                    element.price is None and
+                    element.type == TypeItems.product
+            ) or\
+                    (
+                            element.price is not None and
+                            element.type == TypeItems.category
+                    ):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail='Validation Failed'
+                )
         return items
 
 

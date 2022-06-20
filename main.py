@@ -6,4 +6,9 @@ CONFIG = dotenv_values('_CI/.env')
 
 # main start method
 if __name__ == '__main__':
-    uvicorn.run(app, host=CONFIG['API_SERVER_HOST'], port=int(CONFIG['API_SERVER_PORT']), debug=True)
+    uvicorn.run(
+        app,
+        host=CONFIG['API_SERVER_HOST'],
+        port=int(CONFIG['API_SERVER_PORT']),
+        debug=True
+    )

@@ -16,7 +16,9 @@ def create_or_upd_product(item, date, db):
     product = ProductModel(**item)
 
     if is_product_in_db(item['id'], db):
-        db.query(ProductModel).filter(ProductModel.id == item['id']).update(item)
+        db.query(ProductModel).filter(
+            ProductModel.id == item['id']
+        ).update(item)
     else:
         db.add(product)
     db.commit()
@@ -34,7 +36,9 @@ def create_or_upd_category_and_relations(item, date, db):
     category = CategoryModel(**item)
 
     if is_category_in_db(item['id'], db):
-        db.query(CategoryModel).filter(CategoryModel.id == item['id']).update(item)
+        db.query(CategoryModel).filter(
+            CategoryModel.id == item['id']
+        ).update(item)
     else:
         db.add(category)
     db.commit()
@@ -61,7 +65,10 @@ def create_or_upd_relation_category(item, parent, db):
             }
         )
     else:
-        category_relations = CategoriesRelationsModel(children_id=item['id'], parent_id=parent)
+        category_relations = CategoriesRelationsModel(
+            children_id=item['id'],
+            parent_id=parent
+        )
         db.add(category_relations)
     db.commit()
 
@@ -70,7 +77,9 @@ def is_product_in_db(product_id, db) -> bool:
     """
     Is product in db ? Yes return True, No return False
     """
-    product_in_db = db.query(ProductModel).filter(ProductModel.id == product_id).exists()
+    product_in_db = db.query(ProductModel).filter(
+        ProductModel.id == product_id
+    ).exists()
     return db.query(product_in_db).scalar()
 
 
@@ -78,7 +87,9 @@ def is_category_in_db(category_id, db) -> bool:
     """
     Is category in db ? Yes return True, No return False
     """
-    category_in_db = db.query(CategoryModel).filter(CategoryModel.id == category_id).exists()
+    category_in_db = db.query(CategoryModel).filter(
+        CategoryModel.id == category_id
+    ).exists()
     return db.query(category_in_db).scalar()
 
 
@@ -100,7 +111,10 @@ def get_all_category_relations(category_id, db):
     """
     Get all relation for this category
     """
-    relations = set((str(item.children_id), str(item.parent_id)) for item in db.query(CategoriesRelationsModel).all())
+    relations = set(
+        (str(item.children_id), str(item.parent_id)) for item in db.query(
+            CategoriesRelationsModel
+        ).all())
     return _get_all_category_relations(category_id, relations)
 
 
@@ -109,10 +123,17 @@ def get_item_or_404(item_id, db):
     Search item in db. If item not found raise 404 Not Found, else return item
     """
     if is_category_in_db(item_id, db):
-        return db.query(CategoryModel).filter(CategoryModel.id == item_id).first()
+        return db.query(CategoryModel).filter(
+            CategoryModel.id == item_id
+        ).first()
     elif is_product_in_db(item_id, db):
-        return db.query(ProductModel).filter(ProductModel.id == item_id).first()
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Item not found')
+        return db.query(ProductModel).filter(
+            ProductModel.id == item_id
+        ).first()
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail='Item not found'
+    )
 
 
 def build_items_tree(item_id, relations, db):
@@ -167,7 +188,9 @@ def _calc_average(items):
     if children_only_category:
         return None
 
-    return sum(0 if item.price is None else item.price for item in items) // len(items)
+    return sum(
+        0 if item.price is None else item.price for item in items
+    ) // len(items)
 
 
 def _preparation_product_data(product, date):
@@ -205,7 +228,9 @@ def _get_all_category_relations(category_id, relations):
     arr = [category_id]
 
     # get all children where category_id is parent
-    children_relations = [item[0] for item in relations if item[1] == category_id]
+    children_relations = [
+        item[0] for item in relations if item[1] == category_id
+    ]
 
     if len(children_relations) == 0:
         return arr
@@ -218,33 +243,52 @@ def _get_all_category_relations(category_id, relations):
 
 def validation_change_type(items, db):
     """
-    Validation change type item. If item.type in request and in bd is different -> raise 400 Bad Request
+    Validation change type item.
+    If item.type in request and in bd is different -> raise 400 Bad Request
     """
     relations = [(element.id, element.type) for element in items.items]
 
     for key, group in groupby(relations, lambda x: x[1]):
         group = list(map(lambda x: str(x[0]), group))
         if key == schemas.TypeItems.category:
-            product = db.query(ProductModel).filter(ProductModel.id.in_(group)).exists()
+            product = db.query(ProductModel).filter(
+                ProductModel.id.in_(group)
+            ).exists()
             if db.query(product).scalar():
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Validation failed')
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail='Validation failed'
+                )
         else:
-            category = db.query(CategoryModel).filter(CategoryModel.id.in_(group)).exists()
+            category = db.query(CategoryModel).filter(
+                CategoryModel.id.in_(group)
+            ).exists()
             if db.query(category).scalar():
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Validation failed')
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail='Validation failed'
+                )
 
 
 def validation_parent_in_req(items, db):
     """
-    Validation item parent in req. If type item.parent is product -> raise 400 Bad Request
+    Validation item parent in req.
+    If type item.parent is product -> raise 400 Bad Request
     """
-    parent_ids_in_db = set(map(lambda x: x[0], db.query(CategoryModel.id).all()))
-    parent_ids_in_req = set(item.parentId for item in items.items if item.parentId is not None)
+    parent_ids_in_db = set(
+        map(lambda x: x[0], db.query(CategoryModel.id).all())
+    )
+    parent_ids_in_req = set(
+        item.parentId for item in items.items if item.parentId is not None
+    )
     parent_ids_out_db = parent_ids_in_req - parent_ids_in_db
 
     item_ids_in_req = set(item.id for item in items.items)
     unknown_parent_ids = parent_ids_out_db - item_ids_in_req
     if len(unknown_parent_ids) != 0:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Validation failed')
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Validation failed'
+        )
 
     return parent_ids_out_db
