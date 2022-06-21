@@ -2,6 +2,7 @@
 ## Установка
 ```
 git clone https://github.com/andrekur/yandex-school-task.git
+mkdir ./yandex-school-task/migration/versions
 cd yandex-school-task/_CD
 mv env.example .env
 sudo docker-compose build
@@ -10,7 +11,7 @@ sudo docker-compose up
 после проверьте адресс localhost:80/docs
 ## Ссылки в продукте
 
-Тип запроса | адрес | описание 
+Тип запроса | адрес  | описание 
 --- | --- | --- 
 GET |/docs  | документация по проекту 
 POST |/imports | добавление данных 
