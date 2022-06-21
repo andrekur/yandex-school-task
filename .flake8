@@ -1,0 +1,9 @@
+[flake8]
+
+exclude =
+    migration,
+    _CI,
+    venv
+
+per-file-ignores =
+    ./api/__init__.py:F401

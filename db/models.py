@@ -2,8 +2,8 @@ from sqlalchemy import (
     Column, ForeignKey,
     Integer, String,
     DateTime, UniqueConstraint,
-    BigInteger, Index,
-    Text)
+    BigInteger, Index
+)
 from .connector import Base
 
 

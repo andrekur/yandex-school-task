@@ -21,7 +21,46 @@ def create_or_upd_product(item, date, db):
         ).update(item)
     else:
         db.add(product)
+    if item['parentId'] is not None:
+        upd_category_date_for_relations(item['parentId'], date, db)
     db.commit()
+
+
+def upd_category_date_for_relations(category_id, date, db):
+    """
+    Update date for all relations category
+    """
+    relations = set(
+        (item.children_id, item.parent_id) for item in db.query(
+            CategoriesRelationsModel
+        )
+        .all()
+    )
+    all_parents = _get_all_category_parent(category_id, relations)
+    db.query(CategoryModel).filter(
+        CategoryModel.id.in_(all_parents)
+    ).update({'date': date})
+
+
+def _get_all_category_parent(category_id, relations):
+    """
+    Get all parent for category
+    """
+    arr = [category_id]
+
+    # get all parent where category_id is children
+    parents_relations = [
+        item[1] for item in relations if (
+                str(item[0]) == category_id and item[1] is not None)
+    ]
+
+    if len(parents_relations) == 0:
+        return arr
+
+    for parent in parents_relations:
+        arr += _get_all_category_parent(parent, relations)
+
+    return arr
 
 
 def create_or_upd_category_and_relations(item, date, db):
@@ -41,6 +80,9 @@ def create_or_upd_category_and_relations(item, date, db):
         ).update(item)
     else:
         db.add(category)
+
+    upd_category_date_for_relations(item['id'], date, db)
+
     db.commit()
 
     create_or_upd_relation_category(item, parent, db)
@@ -152,11 +194,13 @@ def build_items_tree(item_id, relations, db):
     del products
 
     # get all children where item_id is parent
-    children_relations = [item[0] for item in relations if item[1] == item_id]
+    children_relations = [
+        str(item[0]) for item in relations if str(item[1]) == item_id
+    ]
 
     if len(children_relations) == 0:
         # check for one item
-        category.price = _calc_average(category.children)
+        category.price = _calc_average(category)
         return category
 
     for children in children_relations:
@@ -167,30 +211,40 @@ def build_items_tree(item_id, relations, db):
         if hasattr(child, 'parentId'):
             child.parentId = category.id
 
-    category.price = _calc_average(category.children)
+    category.price = _calc_average(category)
 
     return category
 
 
-def _calc_average(items):
+def _calc_average(category):
     """
     Calculation average items
     """
-    if len(items) == 0:
-        return None
+    sum, count = _get_sum_and_count(category)
 
-    children_only_category = True
-    for item in items:
-        if item.price is not None:
-            children_only_category = False
-            break
+    if count != 0:
+        return sum // count
 
-    if children_only_category:
-        return None
+    return None
 
-    return sum(
-        0 if item.price is None else item.price for item in items
-    ) // len(items)
+
+def _get_sum_and_count(items):
+    """
+    Get sum product.price and count product
+    """
+    if items.children is None:
+        return 0, 0
+    sum = 0
+    count = 0
+    for child in items.children:
+        if child.type is schemas.TypeItems.product:
+            sum += child.price
+            count += 1
+        else:
+            _sum, _count = _get_sum_and_count(child)
+            sum += _sum
+            count += _count
+    return sum, count
 
 
 def _preparation_product_data(product, date):

@@ -9,7 +9,7 @@ def convert_datetime_to_iso_8601(dt: datetime) -> str:
     """
     Convert date to iso 8601
     """
-    return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+    return dt.replace(tzinfo=None).strftime('%Y-%m-%dT%H:%M:%S.000Z')
 
 
 def transform_to_utc_datetime(dt: datetime) -> datetime:
@@ -99,11 +99,15 @@ class ItemsOut(BaseModel):
     id: UUID4
     name: constr(min_length=1)
     parentId: UUID4 = None
+    date: datetime
     price: conint(ge=0) = None
     type: TypeItems = None
     children: Optional[List['ItemsOut']]
 
     class Config:
+        json_encoders = {
+            datetime: convert_datetime_to_iso_8601
+        }
         orm_mode = True
 
 

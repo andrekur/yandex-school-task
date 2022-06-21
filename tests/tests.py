@@ -19,7 +19,7 @@ class ProductTest(BaseAPITest):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # check get item
-        del data['updateDate']
+        data['items'][0]['date'] = data['updateDate']
         data['items'][0]['children'] = None
         data = data['items'][0]
         self.assertEqual(response.json(), data)
@@ -88,6 +88,7 @@ class ProductTest(BaseAPITest):
         product = [
             item for item in data['items'] if item['id'] != parent_uuid
         ].pop()
+        product['date'] = data['updateDate']
         product['children'] = None
 
         response = self.get_items(product['id'])
@@ -100,6 +101,7 @@ class ProductTest(BaseAPITest):
         ].pop()
         category['children'] = [product, ]
         category['price'] = product['price']
+        category['date'] = data['updateDate']
 
         response = self.get_items(category['id'])
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -139,6 +141,7 @@ class CategoryTest(BaseAPITest):
         response = self.get_items(data['items'][0]['id'])
         category = data['items'][0]
         category['children'] = []
+        category['date'] = data['updateDate']
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json(), category)
@@ -184,6 +187,10 @@ class CategoryTest(BaseAPITest):
         item0 = data['items'][0]
         item1 = data['items'][1]
         item2 = data['items'][2]
+
+        item0['date'] = data['updateDate']
+        item1['date'] = data['updateDate']
+        item2['date'] = data['updateDate']
 
         item2['children'] = []
         item1['children'] = [item2, ]
@@ -245,8 +252,16 @@ class CategoryTest(BaseAPITest):
         item2['children'] = products
         item1['children'] = [item2, ]
         item0['children'] = [item1]
+
+        item0['date'] = data['updateDate']
+        item1['date'] = data['updateDate']
+        item2['date'] = data['updateDate']
+
         products[0]['children'] = None
         products[1]['children'] = None
+
+        products[0]['date'] = data['updateDate']
+        products[1]['date'] = data['updateDate']
 
         response = self.get_items(id0)
         self.assertEqual(response.status_code, status.HTTP_200_OK)

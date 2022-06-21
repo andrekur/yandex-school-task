@@ -28,7 +28,7 @@ def generate_imports(count_category=0, count_product=0):
         'items':
             _generate_categories(count_category)
             + _generate_products(count_product),
-        'updateDate': dt.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+        'updateDate': dt.now().strftime('%Y-%m-%dT%H:%M:%S.000Z')
     }
 
     return result
